@@ -5,10 +5,12 @@ import './App.css'
 import {socket} from './socket.jsx'
 import NameEntry from './scenes/NameEntry.jsx'
 import PickRoom from './scenes/PickRoom.jsx'
+import CreateRoom from './scenes/CreateRoom.jsx'
 console.log("running globally");
 
 function App() {  
   const [name, setName] = React.useState("");
+  const [room, setRoom] = React.useState({name:"", hosting:false, players:[]});
 
   const [scene, setScene] = React.useState("name")
 
@@ -34,7 +36,18 @@ function App() {
             
           }}
           onCreate={()=>{
-            
+            setScene("createroom")
+          }}
+        />
+      case "createroom":
+        return <CreateRoom
+          hostname={name}
+          socket={socket}
+          onCreate={()=> {
+
+          }}
+          onBack={() => {
+            setScene("pickroom")
           }}
         />
       default: return null;

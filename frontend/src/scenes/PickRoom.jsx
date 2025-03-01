@@ -9,7 +9,10 @@ export default function PickRoom({
   const [selIdx, setSelIdx] = React.useState(null);
 
   React.useEffect(() => {
-    socket.on("roomData", setRooms);
+    socket.on("roomData", (r) => {
+      console.log(r);
+      setRooms(r);
+    });
     socket.emit("queryRooms", {}, setRooms);
 
     return () => {
@@ -21,22 +24,33 @@ export default function PickRoom({
     Select a Room
     <table>
       <tbody>
-        {rooms.map(r => {
+        {
+          rooms.length ?
+          rooms.map(r => {
+            <tr>
+              <td>
+                {r.hasPW ? '🔒' : ''}
+              </td>
+              <td>
+                {r.name}
+              </td>
+              <td>
+                {r.playerCount}
+              </td>
+            </tr>
+          })
+          :
           <tr>
             <td>
-              {r.hasPW ? '🔒' : ''}
-            </td>
-            <td>
-              {r.name}
-            </td>
-            <td>
-              {r.playerCount}
+              No rooms right now. Try creating one!
             </td>
           </tr>
-        })}
+        }
       </tbody>
     </table>
-    <button>
+    <button
+      onClick={onCreate}
+    >
       Create Room
     </button>
     <button>

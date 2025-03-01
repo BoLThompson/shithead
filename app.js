@@ -40,6 +40,18 @@ io.on('connect', (socket) => {
     })
   })
 
+  socket.on("makeroom", (roomdata, callback) => {
+
+    console.log(`socket id ${socket.id} made a room with some details like this:`);
+    console.log(roomdata);
+
+    socket.broadcast.emit("roomData", []);
+
+    callback({
+      accept: true
+    })
+  })
+
   socket.on("disconnect", (reason) => {
     console.log(`disconnect from socket id ${socket.id}`);
     console.log(reason);
