@@ -6,6 +6,7 @@ import {socket} from './socket.jsx'
 import NameEntry from './scenes/NameEntry.jsx'
 import PickRoom from './scenes/PickRoom.jsx'
 import CreateRoom from './scenes/CreateRoom.jsx'
+import Gather from './scenes/Gather.jsx'
 console.log("running globally");
 
 function App() {  
@@ -43,13 +44,23 @@ function App() {
         return <CreateRoom
           hostname={name}
           socket={socket}
-          onCreate={()=> {
-
+          onCreate={ room => {
+            setRoom(room);
+            setScene("gather");
           }}
           onBack={() => {
             setScene("pickroom")
           }}
         />
+      case "gather":
+        return <Gather
+          room={room}
+          socket={socket}
+          onBack={() => {
+            setScene("pickroom");
+          }}
+        />
+          
       default: return null;
     }
   }

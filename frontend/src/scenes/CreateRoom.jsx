@@ -15,7 +15,11 @@ export default function CreateRoom({
   function hdlSubmit(e) {
     e.preventDefault();
 
-    socket.emit("makeroom", state, onCreate);
+    socket.emit("makeroom", state, (response) => {
+      if (response.accept) {
+        onCreate(state);
+      }
+    });
   }
 
   function hdlChange(e) {
