@@ -9,6 +9,7 @@ const cors = require('cors');
 // const https = require('https');
 
 // const fs = require('node:fs');
+const UserList = require("./userList.js");
 
 const PORT = process.env.PORT || 8080
 
@@ -28,36 +29,9 @@ const io = require('socket.io')(server, {
   cors: {origin:'*'}
 })
 
+
+const userList = new UserList();
+
 io.on('connect', (socket) => {
-  console.log(`a user connected with id ${socket.id}`);
-
-  socket.on("pickname", (name, callback) => {
-    console.log(`socket id ${socket.id} chose name ${name}`);
-
-    //tell the user that this name is fine
-    callback({
-      accept:true
-    })
-  })
-
-  socket.on("makeroom", (roomdata, callback) => {
-
-    console.log(`socket id ${socket.id} made a room with some details like this:`);
-    console.log(roomdata);
-
-    socket.broadcast.emit("roomData", []);
-
-    callback({
-      accept: true
-    })
-  })
-
-  socket.on("disconnect", (reason) => {
-    console.log(`disconnect from socket id ${socket.id}`);
-    console.log(reason);
-  });
-})
-
-io.on('disconnect', (socket) => {
-  console.log(`a user disconnected with id ${socket.id}`);
+  userList.addUser(socket);
 })

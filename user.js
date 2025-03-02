@@ -1,15 +1,50 @@
 class User {
-  constructor(name, id) {
-    this.name = name;
-    this.id = id;
+  #socket;
+  #name;
+  #disconnectCallback;
+  
+  constructor(socket, ondisconnect) {
+    this.#socket = socket;
+    this.#name = "";
+    this.#disconnectCallback = ondisconnect;
+
+    this.#setState("new")
   };
 
-  getName() {
-    return this.name;
-  };
+  #setState(state) {
+    this.#socket.removeAllListeners();
+    this.#socket.on("disconnect", this.#disconnectCallback);
 
-  getID(){
-    return this.id;
+    const states = {
+      new: {
+        pickname: (name, callback) => {
+          //please actually pick a name
+          if (name === "") return callback({accept: false});
+
+          //save it
+          this.#name = name;
+
+          //report success
+          callback({
+            accept:true
+          });
+
+          //move to lobby state
+          this.#setState("lobby");
+        }
+      }
+    }
+
+    if (!(state in states)) return console.log(`bad state ${state}`);
+
+    Object.entries(states[state]).map(([event,handler]) => {
+      this.#socket.on(event,handler);
+    })
+  }
+
+  print() {
+    return `Name: "${this.name}"\n` +
+      `Id: ${this.socket.id}`
   }
 };
 
