@@ -3,12 +3,12 @@ class User {
   #name;
   #disconnectCallback;
   
-  constructor(socket, ondisconnect) {
+  constructor(socket, onDisconnect) {
     this.#socket = socket;
     this.#name = "";
-    this.#disconnectCallback = ondisconnect;
+    this.#disconnectCallback = onDisconnect;
 
-    this.#setState("new")
+    this.#setState("new");
   };
 
   #setState(state) {
