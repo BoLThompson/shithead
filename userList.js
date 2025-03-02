@@ -1,4 +1,5 @@
 const User = require("./user.js");
+const Room = require("./room.js");
 
 
 class UserList {
@@ -25,12 +26,18 @@ class UserList {
         if (roomdata.name in this.#rooms) return false;
 
         //create the room
-        this.#rooms[roomdata.name] = roomdata;
+        this.#rooms[roomdata.name] = new Room(
+          roomdata.name,
+          roomdata.pw,
+          () => {
+            delete this.#rooms[roomdata.name];
+          }
+        );
 
         return true;
       },
       () => {
-        return Object.entries(this.#rooms).map(([k,v]) => v);
+        return Object.entries(this.#rooms).map(([k,v]) => v.report());
       }
     );
     this.#users[socket.id] = newUser;
