@@ -26,10 +26,10 @@ export default function PickRoom({
       <tbody>
         {
           rooms.length ?
-          rooms.map(r => {
-            <tr>
+          rooms.map((r, i) => 
+            <tr key={i}>
               <td>
-                {r.hasPW ? '🔒' : ''}
+                {r.requirepw ? '🔒' : ''}
               </td>
               <td>
                 {r.name}
@@ -38,7 +38,7 @@ export default function PickRoom({
                 {r.playerCount}
               </td>
             </tr>
-          })
+          )
           :
           <tr>
             <td>
