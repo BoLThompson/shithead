@@ -9,7 +9,8 @@ const cors = require('cors');
 // const https = require('https');
 
 // const fs = require('node:fs');
-const UserList = require("./userList.js");
+const GameManager = require("./gameManager.js");
+const User = require('./user.js');
 
 const PORT = process.env.PORT || 8080
 
@@ -30,8 +31,8 @@ const io = require('socket.io')(server, {
 })
 
 
-const userList = new UserList();
+const gm = new GameManager();
 
 io.on('connect', (socket) => {
-  userList.addUser(socket);
+  const me = new User(socket, gm);
 })

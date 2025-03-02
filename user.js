@@ -1,18 +1,15 @@
 class User {
   #socket;
   #name;
-  #disconnectListeners;
-  #onCreateRoom;
-  #getRoomData;
+  #gm;
+  #room;
   
-  constructor(socket, onCreateRoom, getRoomData) {
+  constructor(socket, gameManager) {
     this.#socket = socket;
     socket.join("lobby");
     this.#name = "";
-    this.#disconnectListeners = [];
-    this.#onCreateRoom = onCreateRoom;
-    this.#getRoomData = getRoomData;
-    // this.#roomChangeListeners = [];
+    this.#gm = gameManager;
+    this.#room = null;
 
     this.#setState("new");
   };
@@ -20,10 +17,12 @@ class User {
   #setState(state) {
     this.#socket.removeAllListeners();
     this.#socket.on("disconnect", ()=>{
-      this.#disconnect();
+      if (this.#room)
+        this.#room.leave(this.#socket.id);
     });
+
     this.#socket.on("queryRooms", (data, callback) => {
-      callback(this.#getRoomData());
+      callback(this.#gm.getRoomData());
     });
 
     const states = {
@@ -52,26 +51,35 @@ class User {
             //leave the lobby
         },
         makeroom: (roomdata, callback) => {
-          //ask to create the room
-          if (!this.#onCreateRoom(roomdata)) {
-            //if no, callback that
+          const newRoom = this.#gm.makeRoom(this.#socket.id, roomdata);
+          //if we can create and join this room
+          if (!newRoom) {
             callback({
               accept:false,
               reason:"A room with that name already exists."
             })
-
             return;
           }
 
+          this.#socket.leave("lobby");
+          this.#socket.join(newRoom.getName());
+          this.#room = newRoom;
+
+          //let everyone know we made one
+          this.#socket.broadcast.to("lobby").emit("roomData", this.#gm.getRoomData());
           
-          this.#socket.broadcast.to("lobby").emit("roomData", 
-            this.#getRoomData()
-          )
+          callback({
+            accept:true,
+          })
 
           this.#setState("gathering");
         }
       },
-      // gathering: {},
+      gathering: {
+        tolobby: ()=>{
+          this.#toLobby();
+        }
+      },
       // starting: {},
       // arranging: {},
       // waiting: {},
@@ -85,25 +93,6 @@ class User {
     })
   }
 
-  /**
-   * Adds a listener to the disconnect event
-   * @param {*} callback a callback to execute upon disconnect
-   */
-  addDisconnectListener(callback) {
-    this.#disconnectListeners.push(callback);
-  }
-
-  #disconnect(reason){
-    this.#disconnectListeners.forEach(callback => callback(reason));
-  }
-  
-  // #roomChange(oldroom, newroom){
-  //   this.#roomChangeListeners = 
-  //     this.#roomChangeListeners
-  //     //callbacks which return false will no longer be unregistered
-  //     .filter(callback => callback(oldroom, newroom));
-  // }
-
   getID() {
     return this.#socket.id;
   }
@@ -111,6 +100,15 @@ class User {
   print() {
     return `Name: "${this.#name}"\n` +
       `Id: ${this.#socket.id}`
+  }
+
+  #toLobby() {
+    this.#socket.leave(this.#room.getName());
+    this.#socket.join("lobby");
+    this.#room.leave(this.#socket.id);
+    
+    this.#socket.broadcast.to("lobby").emit("roomData", this.#gm.getRoomData());
+
   }
 };
 

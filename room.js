@@ -2,13 +2,13 @@ class Room {
   #name;
   #password;
   #users;
-  #onDestroy;
+  #onEmpty;
 
-  constructor(name, password, onDestroy) {
+  constructor(name, password, onEmpty) {
     this.#name = name;
     this.#password = password;
     this.#users = {};
-    this.#onDestroy = onDestroy;
+    this.#onEmpty = onEmpty;
   };
 
   addUser(id) {
@@ -17,20 +17,17 @@ class Room {
 
     this.#users[id] = {};
     return true;
-  }
+  };
 
-  removeUser(id) {
-    if (!(id in this.#users))
-      return false;
+  getName() {
+    return this.#name;
+  };
 
-    delete this.#users[id];
+  leave(userid) {
+    delete this.#users[userid];
 
-    if (Object.keys(this.#users).length === 0) {
-      this.#onDestroy();
-    }
-    
-    return true;
-  }
+    if (Object.entries(this.#users).length === 0) this.#onEmpty();
+  };
 
   report() {
     return {
