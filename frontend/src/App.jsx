@@ -7,20 +7,29 @@ import NameEntry from './scenes/NameEntry.jsx'
 import PickRoom from './scenes/PickRoom.jsx'
 import CreateRoom from './scenes/CreateRoom.jsx'
 import Gather from './scenes/Gather.jsx'
+import RoomPassword from './scenes/RoomPassword.jsx'
 console.log("running globally");
 
 function App() {  
   const [name, setName] = React.useState("");
-  const [room, setRoom] = React.useState({name:"", hosting:false, players:[]});
+  const [room, setRoom] = React.useState(null);
 
-  const [scene, setScene] = React.useState("name")
+  const [scene, setScene] = React.useState("name");
 
   // React.useEffect(() => {
     
   // }, [])
 
+  function joinRoom(roomdata) {
+    socket.emit("joinRoom", roomdata, (response) => {
+      if (response.accept) {
+        setScene("gather")
+      }
+      else console.log(response);
+    })
+  }
 
-  function getScene() { 
+  function getScene() {
     switch (scene) {
       case "name":
         return <NameEntry
@@ -33,12 +42,28 @@ function App() {
       case "pickroom":
         return <PickRoom
           socket={socket}
-          onJoin={()=>{
-            
+          onJoin={ room =>{
+            setRoom(room);
+            if (room.requirepw) {
+              setScene("roomPassword")
+            }
+            else joinRoom({name:room.name,pw:""});
           }}
           onCreate={()=>{
-            setScene("createroom")
+            setScene("createroom");
           }}
+        />
+      case "roomPassword":
+        return <RoomPassword
+          socket={socket}
+          onJoin={roomdata=>{
+            joinRoom(roomdata);
+          }}
+          onBack={()=>{
+            setRoom(null);
+            setScene("pickroom");
+          }}
+          room={room}
         />
       case "createroom":
         return <CreateRoom
@@ -60,7 +85,7 @@ function App() {
             setScene("pickroom");
           }}
         />
-          
+
       default: return null;
     }
   }

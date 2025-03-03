@@ -34,5 +34,5 @@ const io = require('socket.io')(server, {
 const gm = new GameManager();
 
 io.on('connect', (socket) => {
-  const me = new User(socket, gm);
+  const me = new User(socket, gm, io);
 })

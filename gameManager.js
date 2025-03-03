@@ -12,7 +12,7 @@ class GameManager {
     return Object.entries(this.#rooms).map(([k,v]) => v.report());
   };
 
-  makeRoom(userid, roomdata) {
+  makeRoom(user, roomdata) {
 
     if (roomdata.name in this.#rooms) return false;
 
@@ -22,11 +22,21 @@ class GameManager {
         delete this.#rooms[roomdata.name];
       }
     );
-    newRoom.addUser(userid);
+    newRoom.addUser(user);
     this.#rooms[roomdata.name] = newRoom;
 
     return newRoom;
   };
+
+  joinRoom(user, roomdata) {
+    //check if the room exists
+    if (!(roomdata.name in this.#rooms)) return false;
+
+    //ask to join it
+    if (!this.#rooms[roomdata.name].addUser(user, roomdata.pw)) return false;
+
+    return this.#rooms[roomdata.name];
+  }
 };
 
 module.exports = GameManager;

@@ -11,11 +11,18 @@ class Room {
     this.#onEmpty = onEmpty;
   };
 
-  addUser(id) {
-    if (id in this.#users)
+  addUser(user, pw="") {
+    console.log("Room.addUser")
+    console.log(`pw=${pw}`)
+    console.log(user)
+    if (user.getID() in this.#users)
       return false;
 
-    this.#users[id] = {};
+    if (pw !== this.#password) return false;
+
+    this.#users[user.getID()] = {
+      name:user.getName()
+    };
     return true;
   };
 
@@ -29,13 +36,22 @@ class Room {
     if (Object.entries(this.#users).length === 0) this.#onEmpty();
   };
 
+  getDetails() {
+    return {
+      users: Object.entries(this.#users).map(([k,v]) => ({
+        name: v.name
+      })),
+      state:"gathering",  //FIXME: the state of the game can be here :)
+    }
+  };
+
   report() {
     return {
       name: this.#name,
       requirepw: this.#password !== "",
       //capacity?
     }
-  }
+  };
 };
 
 module.exports = Room;

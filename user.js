@@ -3,13 +3,15 @@ class User {
   #name;
   #gm;
   #room;
+  #io;
   
-  constructor(socket, gameManager) {
+  constructor(socket, gameManager, io) {
     this.#socket = socket;
     socket.join("lobby");
     this.#name = "";
     this.#gm = gameManager;
     this.#room = null;
+    this.#io = io;
 
     this.#setState("new");
   };
@@ -44,14 +46,27 @@ class User {
         }
       },
       lobby: {
-        joinroom: (roomname, callback) => {
+        joinRoom: (roomdata, callback) => {
           //ask the if the room can be joined
+          const newRoom = this.#gm.joinRoom(this, roomdata);
+
           //if no, nothing happens
+          if (!newRoom) return callback({accept:false});
+
           //if so, join the room
-            //leave the lobby
+          this.#socket.join(roomdata.name);
+          //leave the lobby
+          this.#socket.leave("lobby");
+          //hold onto a reference for this
+          this.#room = newRoom;
+
+          this.#socket.broadcast.to(roomdata.name).emit("roomDetails", this.#room.getDetails());
+
+          this.#setState("gathering");
+          callback({accept:true});
         },
         makeroom: (roomdata, callback) => {
-          const newRoom = this.#gm.makeRoom(this.#socket.id, roomdata);
+          const newRoom = this.#gm.makeRoom(this, roomdata);
           //if we can create and join this room
           if (!newRoom) {
             callback({
@@ -78,6 +93,16 @@ class User {
       gathering: {
         tolobby: ()=>{
           this.#toLobby();
+        },
+        queryRoom: (args, callback) => {
+          callback(this.#room.getDetails());
+        },
+        chat: (msg) => {
+          this.#io.to(this.#room.getName()).emit("chat", {
+            msg:msg,
+            user: this.#name,
+            time: (new Date()).toString()
+          })
         }
       },
       // starting: {},
@@ -97,18 +122,35 @@ class User {
     return this.#socket.id;
   }
 
+  getName() {
+    return this.#name;
+  }
+
   print() {
     return `Name: "${this.#name}"\n` +
       `Id: ${this.#socket.id}`
   }
 
   #toLobby() {
-    this.#socket.leave(this.#room.getName());
+    //join the lobby
     this.#socket.join("lobby");
-    this.#room.leave(this.#socket.id);
+
+    //don't dereference null pointers
+    if (this.#room) {
+      //leave the socket.io room
+      this.#socket.leave(this.#room.getName());
+      //tell the Room instance that we're gone
+      this.#room.leave(this.#socket.id);
+      //tell everyone that we left
+      this.#socket.broadcast.to(this.#room.getName()).emit("roomDetails", this.#room.getDetails());
+      //null this pointer
+      this.#room = null;
+    }
     
+    //tell the GM to update everyone's roomData
     this.#socket.broadcast.to("lobby").emit("roomData", this.#gm.getRoomData());
 
+    this.#setState("lobby");
   }
 };
 

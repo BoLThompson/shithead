@@ -19,6 +19,9 @@ export default function CreateRoom({
       if (response.accept) {
         onCreate(state);
       }
+      else {
+        console.log(response);
+      }
     });
   }
 
