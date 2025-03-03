@@ -22,7 +22,7 @@ class GameManager {
         delete this.#rooms[roomdata.name];
       }
     );
-    newRoom.addUser(user);
+    newRoom.addUser(user, roomdata.pw);
     this.#rooms[roomdata.name] = newRoom;
 
     return newRoom;
