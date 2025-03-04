@@ -1,3 +1,33 @@
+/**
+ * The User, an FSM driven by socket.io events sent by the frontend.
+ * 
+ * I do not like the way that this module relies directly on socket.io.
+ *    Maybe there's some kind of way to make these events trigger generically.
+ *    hurdles:
+ *      callbacks would need to be moved out of this module
+ *        probably just return the object that should be sent via callback
+ *      socket.join and socket.leave need to be moved out somehow
+ *        these functions should be up to the Rooms so that desyncs between my data and socket.io don't happen
+ *      socket.emit and io.emit need to be moved out
+ *        this can probably be accomplished by just outputting the data to send and whether it's for "everyone/everyone else" or "everyone in my room"
+ * I do not like the way that most of the code is inside of the state changing logic
+ *    can we just make each state's handlers into separate files?
+ * I do not like the call to removeAllListeners().
+ *    We can fix that by tracking the current state and manually unregistering each listener before applying the new ones.
+ * 
+ * Here's a neat idea:
+ *    GM is instantiated at the global level and gets a reference to io
+ *    GM registers a connect and disconnect event
+ *    on connect, it instantiates a User
+ *    somehow the user gives a package of the form "event name: handler()" and the GM attaches callbacks to each "event name"
+ *      each callback first checks with the authorities (rooms, game, chat?) if we're allowed to do that right now, and if so,
+ *        we execute handler() with whatever socket.io gave us, take the return value and
+ *          replace all the listeners with new ones for a new set of callbacks?
+ *          grab any data that should be sent and how it should be sent
+ *          pack it up with {accept: true, data:{}} and fire it off with the socket.io event callback
+ *        and if not, we just {accept: false, reason:""} and fire it off with the socket.io event callback
+ */
+
 class User {
   #socket;
   #name;
